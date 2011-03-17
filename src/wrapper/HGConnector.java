@@ -29,6 +29,8 @@ public class HGConnector {
 		this.path = path;
 	}
 	
+	
+	// main call to system
 	private Json callHG (String action){
 		String[] cmd = null;
 		
@@ -57,6 +59,7 @@ public class HGConnector {
 		} catch (InterruptedException e) {
 			logger.error("HG Error executing the command",e);
 		}
+		
 		return result;
 	}
 	
