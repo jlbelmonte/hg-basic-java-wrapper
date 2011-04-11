@@ -82,7 +82,6 @@ public class HGConnector {
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
 		}
 		catch (IOException e) {
-			e.printStackTrace();
 			logger.error("HG Exception: "+ uri, e);
 		}
 		return result;

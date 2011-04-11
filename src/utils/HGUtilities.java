@@ -62,7 +62,6 @@ public static Json parseData(BufferedReader stdOutput,  String stdErr, int statu
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
 				return(Json.map().put("status", "NOK").put("action", action).put("error", "exception").put("message", e.getMessage()));
 			}
 			return Json.map().put("status", "OK").put("commits", logList);
