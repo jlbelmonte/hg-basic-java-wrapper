@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.log4j.Logger;
+
+import exceptions.RepositoryNotFoundException;
 
 import siena.Json;
 import utils.HGConstants;
@@ -36,31 +40,44 @@ public class HGConnector {
 	}
 	
 	// main call to system
-	private Json callHG (String action){
-		File dir = new File(path);
+	private Json callHG (String action) throws RepositoryNotFoundException{
+			File dir = new File(path);
 
 		CommandLine cl = new CommandLine(command);
 		
 		if (HGConstants.LOG.equals(action) || "incoming".equals(action)){
+			if (!dir.exists()){
+				throw new RepositoryNotFoundException(path);
+			}
 			cl.addArgument(action);
 			cl.addArgument("--rev");
 			cl.addArgument(revFrom+":"+revTo);
 			cl.addArgument("--template");
 			cl.addArgument(HGConstants.TEMPLATE);
 		} else if ("cloneRev".equals(action)) {
-			if (!dir.exists()) dir.mkdir();
+			if (!dir.exists()) {
+				dir.mkdir();
+			}
 			cl.addArgument(HGConstants.CLONE);
 			cl.addArgument("--rev");
 			cl.addArgument(revFrom);
 			cl.addArgument(uri);
 			cl.addArgument(path);
 		} else if (HGConstants.CLONE.equals(action)) {
-			if (!dir.exists()) dir.mkdir();
+			if (!dir.exists()){ 
+				logger.debug(dir.getAbsolutePath());
+				logger.debug("do not exists");
+				dir.mkdir();
+			}else{
+				logger.debug("exists");
+			}
 			cl.addArgument(HGConstants.CLONE);
 			cl.addArgument(uri);
 			cl.addArgument(path);
 		} else if (HGConstants.PULL.equals(action)){
-			if(!dir.exists()) return callHG(HGConstants.CLONE);
+			if(!dir.exists() || dir.list().length == 0 ){
+				return callHG(HGConstants.CLONE);
+			}
 			cl.addArgument(HGConstants.PULL);
 			cl.addArgument("-u");
 		}
@@ -74,7 +91,7 @@ public class HGConnector {
 			Executor executor = new DefaultExecutor();
 			executor.setStreamHandler(streamHandler);
 			executor.setWorkingDirectory(dir);
-
+			logger.debug(cl.toString());
 			int statusCode = executor.execute(cl);
 			FileReader fr = new FileReader(file);
 			BufferedReader br = new BufferedReader(fr);
@@ -89,38 +106,50 @@ public class HGConnector {
 	
 	// public methods
 	//clones
-	public Json clone(){
-		return callHG("clone");
-	}
 	
-	public Json cloneRev(String revision){
+	public Json cloneRev(String revision) throws RepositoryNotFoundException{
 		this.revFrom = revision;
 		return callHG("cloneRev");
 	}
+
+	public Json cloneRepo() throws RepositoryNotFoundException{
+		return callHG("clone");
+	}
 	
 	// logs
-	public Json log(){
+	public Json log() throws RepositoryNotFoundException{
 		return callHG("log");
 	}
-	public Json log(String revFrom, String revTo){
+	public Json log(String revFrom, String revTo) throws RepositoryNotFoundException{
 		this.revFrom = revFrom;
 		this.revTo = revTo;
 		return  callHG("log");		
 	}
 	
-	public Json log(String revFrom){
+	public Json log(String revFrom) throws RepositoryNotFoundException{
 		this.revFrom = revFrom;
 		this.revTo="tip";
 		return callHG("log");
 	}
 	
-	public Json hgRemoteLog(){
+	public Json hgRemoteLog() throws RepositoryNotFoundException{
 		return callHG("incoming");
 	}
 	
 	//update
-	public Json pull(){
+	public Json pull() throws RepositoryNotFoundException{
 		return callHG("pull");
+	}
+	
+	
+	public static void main(String[] args) {
+		HGConnector hc = new HGConnector( "http://punjabi.hg.sourceforge.net:8000/hgroot/punjabi/punjabi", "/Users/jlbelmonte/caguentony", "/usr/local/bin/hg");
+		try {
+			hc.pull();
+		} catch (RepositoryNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }
