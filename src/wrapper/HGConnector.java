@@ -47,7 +47,7 @@ public class HGConnector {
 		CommandLine cl = new CommandLine(command);
 		
 		if (HGConstants.LOG.equals(action) || "incoming".equals(action)){
-			if (!dir.exists()){
+			if (!dir.exists() || dir.list().length == 0){
 				throw new RepositoryNotFoundException(path);
 			}
 			cl.addArgument(action);

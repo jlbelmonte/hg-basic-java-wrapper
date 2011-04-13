@@ -7,7 +7,7 @@ public class RepositoryNotFoundException extends Exception {
 	public RepositoryNotFoundException() {}
 
 	public RepositoryNotFoundException(String repoId) {
-		this.msg = "The directory with the project in not in the file system";
+		this.msg = "The directory with the project in not in the file system or is just an empty dir, clone first";
 		this.repoPath = repoId;
 	}
 
