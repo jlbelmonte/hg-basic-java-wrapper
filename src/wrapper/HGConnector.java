@@ -69,14 +69,18 @@ public class HGConnector {
 				logger.debug(dir.getAbsolutePath());
 				logger.debug("do not exists");
 				dir.mkdir();
-			}else{
-				logger.debug("exists");
 			}
 			cl.addArgument(HGConstants.CLONE);
 			cl.addArgument(uri);
 			cl.addArgument(path);
 		} else if (HGConstants.PULL.equals(action)){
 			if(!dir.exists() || dir.list().length == 0 ){
+				return callHG(HGConstants.CLONE);
+			}else if(dir.list().length ==1 && dir.list()[0].equals(".hg")){
+				//some times the clone corrupts so we just get a .hg dir but not working local repo
+				//delete it and try a clean clone
+				logger.info("deleting"+ dir.getAbsolutePath());
+				HGUtilities.deleteDirectory(dir);
 				return callHG(HGConstants.CLONE);
 			}
 			cl.addArgument(HGConstants.PULL);
@@ -142,16 +146,4 @@ public class HGConnector {
 	public Json pull() throws RepositoryNotFoundException{
 		return callHG("pull");
 	}
-	
-	
-	public static void main(String[] args) {
-		HGConnector hc = new HGConnector( "https://bitbucket.org/harryleebupt/harry-lee", "/Users/jlbelmonte/caguentony", "/usr/local/bin/hg");
-		try {
-			hc.pull();
-		} catch (RepositoryNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
 }

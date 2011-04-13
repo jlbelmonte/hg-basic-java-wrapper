@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,8 +29,8 @@ public class HGUtilities {
 		}
 		return null;
 	}
-	
-public static Json parseData(BufferedReader stdOutput,  String stdErr, int statusCode, String action){
+
+	public static Json parseData(BufferedReader stdOutput,  String stdErr, int statusCode, String action){
 		// status code NOK
 		if (statusCode != 0)
 			return Json.map().put("status", "NOK").put("action", action).put("error", stdErr);
@@ -70,35 +71,49 @@ public static Json parseData(BufferedReader stdOutput,  String stdErr, int statu
 		return Json.map().put("status", "OK" );
 	}
 
-private static Json processRevisionLog(Matcher rev) {
-	String revision = rev.group(1);
-	String node = rev.group(2);
-	String author = rev.group(3);
-	String date = rev.group(4);
-	String message = rev.group(5);	
-	String added = rev.group(6);
-	String removed = rev.group(7);
-	String files = rev.group(8);
-	Json revLog = Json.map()
-				.put("revision", revision)
-				.put("node", node)
-				.put("author", author)
-				.put("date", date)
-				.put("message", message);
-	
-	List <String >addedList = Arrays.asList(added.split("\\s+"));
-	List <String >removedList = Arrays.asList(removed.split("\\s+"));
-	List <String> modifiedList = new ArrayList<String>();
-	List <String >fileList = Arrays.asList(files.split("\\s+"));
-	for (String string : fileList) {
-		if(!addedList.contains(string) || !removedList.contains(string)){
-			modifiedList.add(string);
-		}
-	}
-	revLog.put("added", addedList)
-	.put("removed", removedList)
-	.put("modified", modifiedList);
-	return revLog;
-}
+	private static Json processRevisionLog(Matcher rev) {
+		String revision = rev.group(1);
+		String node = rev.group(2);
+		String author = rev.group(3);
+		String date = rev.group(4);
+		String message = rev.group(5);	
+		String added = rev.group(6);
+		String removed = rev.group(7);
+		String files = rev.group(8);
+		Json revLog = Json.map()
+		.put("revision", revision)
+		.put("node", node)
+		.put("author", author)
+		.put("date", date)
+		.put("message", message);
 
+		List <String >addedList = Arrays.asList(added.split("\\s+"));
+		List <String >removedList = Arrays.asList(removed.split("\\s+"));
+		List <String> modifiedList = new ArrayList<String>();
+		List <String >fileList = Arrays.asList(files.split("\\s+"));
+		for (String string : fileList) {
+			if(!addedList.contains(string) || !removedList.contains(string)){
+				modifiedList.add(string);
+			}
+		}
+		revLog.put("added", addedList)
+		.put("removed", removedList)
+		.put("modified", modifiedList);
+		return revLog;
+	}
+	
+		static public boolean deleteDirectory(File path) {
+			if( path.exists() ) {
+				File[] files = path.listFiles();
+				for(int i=0; i<files.length; i++) {
+					if(files[i].isDirectory()) {
+						deleteDirectory(files[i]);
+					}
+					else {
+						files[i].delete();
+					}
+				}
+			}
+			return( path.delete() );
+		}
 }
