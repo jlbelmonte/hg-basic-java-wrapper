@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.UUID;
 
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -84,7 +85,8 @@ public class HGConnector {
 		Json result = Json.map();
 
 		try{
-			File file = File.createTempFile("hgkit", "tmp");
+			String tmp = UUID.randomUUID().toString();
+			File file = File.createTempFile(tmp, "tmp");
 			FileOutputStream fOS = new FileOutputStream(file);
 			PumpStreamHandler streamHandler = new PumpStreamHandler();
 			streamHandler = new PumpStreamHandler(fOS);
@@ -143,7 +145,7 @@ public class HGConnector {
 	
 	
 	public static void main(String[] args) {
-		HGConnector hc = new HGConnector( "http://punjabi.hg.sourceforge.net:8000/hgroot/punjabi/punjabi", "/Users/jlbelmonte/caguentony", "/usr/local/bin/hg");
+		HGConnector hc = new HGConnector( "https://bitbucket.org/harryleebupt/harry-lee", "/Users/jlbelmonte/caguentony", "/usr/local/bin/hg");
 		try {
 			hc.pull();
 		} catch (RepositoryNotFoundException e) {
