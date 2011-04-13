@@ -4,8 +4,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
 import java.util.UUID;
 
 import org.apache.commons.exec.CommandLine;
@@ -14,11 +15,10 @@ import org.apache.commons.exec.Executor;
 import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.log4j.Logger;
 
-import exceptions.RepositoryNotFoundException;
-
 import siena.Json;
 import utils.HGConstants;
 import utils.HGUtilities;
+import exceptions.RepositoryNotFoundException;
 
 
 public class HGConnector {
@@ -98,10 +98,28 @@ public class HGConnector {
 			executor.setStreamHandler(streamHandler);
 			executor.setWorkingDirectory(dir);
 			logger.debug(cl.toString());
+			
+			// redirecting System.err and prepare a pipeIn to read it
+			PipedOutputStream pipeOut = new PipedOutputStream();
+			PipedInputStream pipeIn = new PipedInputStream(pipeOut);
+			System.setErr (new PrintStream(pipeOut));
+			
+			/* 	DefaultExecutor only accepts one value as success value
+				by default, we need to accept more and discriminate the 
+				result afterwards. So Don't Panic
+			*/
+			int [] dontPanicValues = new int[256]; 
+			for (int i = 0; i <= 255; i++) {
+				dontPanicValues[i]=i;
+			}
+			executor.setExitValues(dontPanicValues);
+			
+			//execute command
 			int statusCode = executor.execute(cl);
+			
 			FileReader fr = new FileReader(file);
 			BufferedReader br = new BufferedReader(fr);
-			String stdErr = System.err.toString();
+			String stdErr = HGUtilities.piped2String(pipeIn);
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
 		}
 		catch (IOException e) {
@@ -147,3 +165,4 @@ public class HGConnector {
 		return callHG("pull");
 	}
 }
+
