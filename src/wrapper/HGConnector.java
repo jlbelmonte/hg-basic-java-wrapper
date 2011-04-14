@@ -45,7 +45,7 @@ public class HGConnector {
 			File dir = new File(path);
 
 		CommandLine cl = new CommandLine(command);
-		
+		logger.debug("HGConnector msg: Starting to "+action+" over "+this.uri);
 		if (HGConstants.LOG.equals(action) || "incoming".equals(action)){
 			if (!dir.exists() || dir.list().length == 0){
 				throw new RepositoryNotFoundException(path);
@@ -116,11 +116,13 @@ public class HGConnector {
 			
 			//execute command
 			int statusCode = executor.execute(cl);
-			
+			logger.debug("HGConnector msg: Executed "+action+" over "+this.uri+ " exitStatus "+statusCode);
 			FileReader fr = new FileReader(file);
 			BufferedReader br = new BufferedReader(fr);
 			String stdErr = HGUtilities.piped2String(pipeIn);
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
+			logger.debug("HGConnector msg: result "+ result.asString());
+
 		}
 		catch (IOException e) {
 			logger.error("HG Exception: "+ uri, e);
