@@ -121,7 +121,8 @@ public class HGConnector {
 			BufferedReader br = new BufferedReader(fr);
 			String stdErr = HGUtilities.piped2String(pipeIn);
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
-			logger.debug("HGConnector msg: result "+ result.asString());
+			logger.debug("HGConnector msg: result "+ result);
+			file.delete();
 
 		}
 		catch (IOException e) {
