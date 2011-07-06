@@ -89,8 +89,7 @@ public class HGConnector {
 		Json result = Json.map();
 		File file = null;
 		try{
-			String tmp = UUID.randomUUID().toString();
-			file = File.createTempFile(tmp, "tmp");
+			file = File.createTempFile("HG-", ".log");
 			FileOutputStream fOS = new FileOutputStream(file);
 			PumpStreamHandler streamHandler = new PumpStreamHandler();
 			streamHandler = new PumpStreamHandler(fOS);
