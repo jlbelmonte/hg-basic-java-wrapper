@@ -87,10 +87,10 @@ public class HGConnector {
 			cl.addArgument("-u");
 		}
 		Json result = Json.map();
-
+		File file = null;
 		try{
 			String tmp = UUID.randomUUID().toString();
-			File file = File.createTempFile(tmp, "tmp");
+			file = File.createTempFile(tmp, "tmp");
 			FileOutputStream fOS = new FileOutputStream(file);
 			PumpStreamHandler streamHandler = new PumpStreamHandler();
 			streamHandler = new PumpStreamHandler(fOS);
@@ -122,11 +122,12 @@ public class HGConnector {
 			String stdErr = HGUtilities.piped2String(pipeIn);
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
 			logger.debug("HGConnector msg: result "+ result);
-			file.delete();
-
 		}
 		catch (IOException e) {
 			logger.error("HG Exception: "+ uri, e);
+		} finally {
+			file.delete();
+
 		}
 		return result;
 	}
