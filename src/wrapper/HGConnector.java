@@ -87,10 +87,17 @@ public class HGConnector {
 			cl.addArgument("-u");
 		}
 		Json result = Json.map();
+		
 		File file = null;
+		FileOutputStream fOS = null;
+		FileReader fr = null;
+		BufferedReader br = null;
+		PipedOutputStream pipeOut = null;
+		PipedInputStream pipeIn = null;
+		
 		try{
 			file = File.createTempFile("HG-", ".log");
-			FileOutputStream fOS = new FileOutputStream(file);
+			fOS = new FileOutputStream(file);
 			PumpStreamHandler streamHandler = new PumpStreamHandler();
 			streamHandler = new PumpStreamHandler(fOS);
 			Executor executor = new DefaultExecutor();
@@ -99,8 +106,8 @@ public class HGConnector {
 			logger.debug(cl.toString());
 			
 			// redirecting System.err and prepare a pipeIn to read it
-			PipedOutputStream pipeOut = new PipedOutputStream();
-			PipedInputStream pipeIn = new PipedInputStream(pipeOut);
+			pipeOut = new PipedOutputStream();
+			pipeIn = new PipedInputStream(pipeOut);
 			System.setErr (new PrintStream(pipeOut));
 			
 			/* 	DefaultExecutor only accepts one value as success value
@@ -116,17 +123,23 @@ public class HGConnector {
 			//execute command
 			int statusCode = executor.execute(cl);
 			logger.debug("HGConnector msg: Executed "+action+" over "+this.uri+ " exitStatus "+statusCode);
-			FileReader fr = new FileReader(file);
-			BufferedReader br = new BufferedReader(fr);
+			fr = new FileReader(file);
+			br = new BufferedReader(fr);
 			String stdErr = HGUtilities.piped2String(pipeIn);
 			result = HGUtilities.parseData(br, stdErr, statusCode, action);
 			logger.debug("HGConnector msg: result "+ result);
+			
 		}
 		catch (IOException e) {
 			logger.error("HG Exception: "+ uri, e);
 		} finally {
+			try {fOS.close();} catch (Exception e) {}
+			try {fr.close();} catch (Exception e) {}
+			try {br.close();} catch (Exception e) {}
+			try {pipeOut.close();} catch (Exception e) {}
+			try {pipeIn.close();} catch (Exception e) {}
+			logger.debug("File size " + file.length());
 			file.delete();
-
 		}
 		return result;
 	}
